@@ -22,7 +22,7 @@ async function connectToMongoDB() {
 async function disconnectFromMongoDB() {
   await client.close();
 }
-
+console.log("hello ")
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })
