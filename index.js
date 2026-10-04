@@ -19,13 +19,24 @@ async function connectToMongoDB() {
     console.dir(err);
   }
 }
-async function disconnectFromMongoDB() {
-  await client.close();
-}
-console.log("hello ")
+// async function disconnectFromMongoDB() {
+//   await client.close();
+// }
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+
+
+
+
+
+
+
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
