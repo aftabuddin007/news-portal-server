@@ -27,6 +27,7 @@ const db = client.db("news-portalDB")
 
 // upload news data to database
 const newsCollection = db.collection("news")
+const articleCollection = db.collection("articles")
 app.post('/news', async (req, res) => {
 const newsData = req.body;
 const result = await newsCollection.insertOne(newsData);
@@ -58,7 +59,16 @@ app.delete('/news/:id', async (req, res) => {
     result
   })
 })
-
+// add article to database
+app.post('/articles', async (req, res) => {
+  const articleData = req.body;
+  const result = await articleCollection.insertOne(articleData);
+  res.send({
+    success:true,
+    message:'Article added successfully',
+    result
+  })
+})
 
 
 
