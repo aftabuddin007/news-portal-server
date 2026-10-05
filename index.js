@@ -205,7 +205,16 @@ app.get('/polls', async (req, res) => {
   const result = await pollCollection.find({}).toArray();
   res.send(result)
 })
-
+// delete poll from database
+app.delete('/polls/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await pollCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send({
+    success:true, 
+    message:'Poll deleted successfully',
+    result
+  })
+})
 
 
 
