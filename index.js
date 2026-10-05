@@ -29,6 +29,8 @@ const db = client.db("news-portalDB")
 const newsCollection = db.collection("news")
 const articleCollection = db.collection("articles")
 const careerCollection = db.collection("careers")
+const storyCollection = db.collection("stories")
+const photoCollection = db.collection("photos")
 // upload news data to database
 app.post('/news', async (req, res) => {
 const newsData = req.body;
@@ -141,6 +143,38 @@ app.get('/careers', async (req, res) => {
   const result = await careerCollection.find({}).toArray();
   res.send(result)
 })
+// photo story
+app.post('/stories', async (req, res) => {
+  const storyData = req.body;
+  const result = await storyCollection.insertOne(storyData);
+  res.send({
+    success:true,
+    message:'Story added successfully',
+    result
+  })
+})
+// All stories from database
+app.get('/stories', async (req, res) => {
+  const result = await storyCollection.find({}).toArray();
+  res.send(result)
+})
+// add photo Gallery to database
+app.post('/photos', async (req, res) => {
+  const photoData = req.body;
+  const result = await photoCollection.insertOne(photoData);
+  res.send({
+    success:true,
+    message:'Photo added successfully',
+    result
+  })
+})
+// all photos from database
+app.get('/photos', async (req, res) => {
+  const result = await photoCollection.find({}).toArray();
+  res.send(result)
+})
+
+
 
 
 
