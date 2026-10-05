@@ -22,12 +22,23 @@ async function connectToMongoDB() {
 // async function disconnectFromMongoDB() {
 //   await client.close();
 // }
-app.get('/', (req, res) => {
-  res.send('Hello World!')
+const db = client.db("news-portalDB")
+
+
+// upload news data to database
+const newsCollection = db.collection("news")
+app.post('/news', async (req, res) => {
+const newsData = req.body;
+const result = await newsCollection.insertOne(newsData);
+res.send({
+  success:true,
+  message:'News added successfully',
+  result
 })
-app.get('/', (req, res) => {
-  res.send('Hello World!')
 })
+
+// get news data from database
+
 
 
 
