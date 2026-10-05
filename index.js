@@ -38,7 +38,10 @@ res.send({
 })
 
 // get news data from database
-
+app.get('/news', async (req, res) => {
+  const result = await newsCollection.find({}).toArray();
+  res.send(result)
+})
 
 
 
