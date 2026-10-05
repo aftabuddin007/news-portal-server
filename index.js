@@ -25,9 +25,11 @@ async function connectToMongoDB() {
 const db = client.db("news-portalDB")
 
 
-// upload news data to database
+// collection name
 const newsCollection = db.collection("news")
 const articleCollection = db.collection("articles")
+const careerCollection = db.collection("careers")
+// upload news data to database
 app.post('/news', async (req, res) => {
 const newsData = req.body;
 const result = await newsCollection.insertOne(newsData);
@@ -122,6 +124,21 @@ app.delete('/articles/:id', async (req, res) => {
 app.get('/articles/status/:status', async (req, res) => {
   const status = req.params.status;
   const result = await articleCollection.find({ status: status }).toArray();
+  res.send(result)
+})
+// career data
+app.post('/careers', async (req, res) => {
+  const careerData = req.body;
+  const result = await careerCollection.insertOne(careerData);
+  res.send({
+    success:true,
+    message:'Career added successfully',
+    result
+  })
+})
+// all careers from database
+app.get('/careers', async (req, res) => { 
+  const result = await careerCollection.find({}).toArray();
   res.send(result)
 })
 
