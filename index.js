@@ -69,6 +69,27 @@ app.post('/articles', async (req, res) => {
     result
   })
 })
+// all articles from database
+app.get('/articles', async (req, res) => {
+  const result = await articleCollection.find({}).toArray();
+  res.send(result)
+})
+// article details
+app.get('/articles/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await articleCollection.findOne({ _id: new ObjectId(id) });
+  res.send(result)
+})
+// delete article from database
+app.delete('/articles/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await articleCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send({
+    success:true,
+    message:'Article deleted successfully',
+    result
+  })
+})
 
 
 
