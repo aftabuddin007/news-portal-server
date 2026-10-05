@@ -31,6 +31,8 @@ const articleCollection = db.collection("articles")
 const careerCollection = db.collection("careers")
 const storyCollection = db.collection("stories")
 const photoCollection = db.collection("photos")
+const videoCollection = db.collection("videos")
+const pollCollection = db.collection("polls")
 // upload news data to database
 app.post('/news', async (req, res) => {
 const newsData = req.body;
@@ -173,6 +175,37 @@ app.get('/photos', async (req, res) => {
   const result = await photoCollection.find({}).toArray();
   res.send(result)
 })
+// add video Gallery to database
+app.post('/videos', async (req, res) => {
+  const videoData = req.body;
+  const result = await videoCollection.insertOne(videoData);
+  res.send({
+    success:true,
+    message:'Video added successfully',
+    result
+  })
+})
+// all videos from database
+app.get('/videos', async (req, res) => {
+  const result = await videoCollection.find({}).toArray();
+  res.send(result)
+})
+// poll data
+app.post('/polls', async (req, res) => {
+  const pollData = req.body;
+  const result = await pollCollection.insertOne(pollData);
+  res.send({
+    success:true,
+    message:'Poll added successfully',
+    result
+  })
+})
+// all polls from database
+app.get('/polls', async (req, res) => {
+  const result = await pollCollection.find({}).toArray();
+  res.send(result)
+})
+
 
 
 
