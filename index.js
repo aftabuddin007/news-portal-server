@@ -49,6 +49,20 @@ app.get('/news/:id', async (req, res) => {
   const result = await newsCollection.findOne({ _id: new ObjectId(id) });
   res.send(result)
 })
+// update news
+app.put('/news/:id', async (req, res) => {
+  const id = req.params.id;
+  const updatedNews = req.body;
+  const result = await newsCollection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: updatedNews }
+  );
+  res.send({
+    success:true,
+    message:'News updated successfully',
+    result
+  })
+})
 // delete news
 app.delete('/news/:id', async (req, res) => {
   const id = req.params.id;
@@ -80,6 +94,20 @@ app.get('/articles/:id', async (req, res) => {
   const result = await articleCollection.findOne({ _id: new ObjectId(id) });
   res.send(result)
 })
+// update article in database
+app.put('/articles/:id', async (req, res) => {
+  const id = req.params.id;
+  const updatedArticle = req.body;
+  const result = await articleCollection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: updatedArticle }
+  );
+  res.send({
+    success:true,
+    message:'Article updated successfully',
+    result
+  })
+})
 // delete article from database
 app.delete('/articles/:id', async (req, res) => {
   const id = req.params.id;
@@ -90,6 +118,13 @@ app.delete('/articles/:id', async (req, res) => {
     result
   })
 })
+// article by status pending,published,rejected
+app.get('/articles/status/:status', async (req, res) => {
+  const status = req.params.status;
+  const result = await articleCollection.find({ status: status }).toArray();
+  res.send(result)
+})
+
 
 
 
