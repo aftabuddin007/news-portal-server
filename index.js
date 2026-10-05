@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const  { MongoClient } = require('mongodb');
+const  { MongoClient,ObjectId } = require('mongodb');
 const app = express()
 const port =process.env.PORT || 3000
 // middleware
@@ -41,6 +41,22 @@ res.send({
 app.get('/news', async (req, res) => {
   const result = await newsCollection.find({}).toArray();
   res.send(result)
+})
+// news details
+app.get('/news/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await newsCollection.findOne({ _id: new ObjectId(id) });
+  res.send(result)
+})
+// delete news
+app.delete('/news/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await newsCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send({
+    success:true,
+    message:'News deleted successfully',
+    result
+  })
 })
 
 
