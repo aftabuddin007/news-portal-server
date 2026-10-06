@@ -33,7 +33,10 @@ const storyCollection = db.collection("stories")
 const photoCollection = db.collection("photos")
 const videoCollection = db.collection("videos")
 const pollCollection = db.collection("polls")
-// upload news data to database
+// upload news data to 
+app.get("/",async (req,res)=>{
+  res.send("Server is running")
+})
 app.post('/news', async (req, res) => {
 const newsData = req.body;
 const result = await newsCollection.insertOne(newsData);
