@@ -26,6 +26,7 @@ const db = client.db("news-portalDB")
 
 
 // collection name
+const userCollection = db.collection("users")
 const newsCollection = db.collection("news")
 const articleCollection = db.collection("articles")
 const careerCollection = db.collection("careers")
@@ -33,10 +34,26 @@ const storyCollection = db.collection("stories")
 const photoCollection = db.collection("photos")
 const videoCollection = db.collection("videos")
 const pollCollection = db.collection("polls")
-// upload news data to 
 app.get("/",async (req,res)=>{
   res.send("Server is running")
 })
+// create user api
+app.post('/users', async (req, res) => {
+  const userData = req.body;
+  const result = await userCollection.insertOne(userData);  
+  res.send({
+    success:true,
+    message:'User added successfully',
+    result
+  })
+})
+// get all users from database
+app.get('/users', async (req, res) => {
+  const result = await userCollection.find({}).toArray();
+  res.send(result)
+})
+// upload news data to 
+
 app.post('/news', async (req, res) => {
 const newsData = req.body;
 const result = await newsCollection.insertOne(newsData);
@@ -46,7 +63,6 @@ res.send({
   result
 })
 })
-
 // get news data from database
 app.get('/news', async (req, res) => {
   const result = await newsCollection.find({}).toArray();
