@@ -52,7 +52,7 @@ app.get('/users', async (req, res) => {
   const result = await userCollection.find({}).toArray();
   res.send(result)
 })
-// upload news data to 
+// upload news dyata to 
 
 app.post('/news', async (req, res) => {
 const newsData = req.body;
