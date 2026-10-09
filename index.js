@@ -54,15 +54,55 @@ app.get('/users', async (req, res) => {
 })
 // upload news dyata to 
 
+
 app.post('/news', async (req, res) => {
-const newsData = req.body;
-const result = await newsCollection.insertOne(newsData);
-res.send({
-  success:true,
-  message:'News added successfully',
-  result
-})
-})
+  try {
+    const {
+      fileName,
+      imageUrl,
+      fileType,
+      fileSize,
+      uploadedBy,
+    } = req.body;
+
+    if (
+      !fileName ||
+      !imageUrl ||
+      !fileType ||
+      !Number.isFinite(fileSize)
+    ) {
+      return res.status(400).send({
+        success: false,
+        message: 'Invalid media information',
+      });
+    }
+
+    const newsData = {
+      fileName,
+      imageUrl,
+      fileType,
+      fileSize,
+      uploadedBy,
+      uploadedAt: new Date(),
+    };
+
+    const result = await newsCollection.insertOne(newsData);
+
+    res.status(201).send({
+      success: true,
+      message: 'Media added successfully',
+      insertedId: result.insertedId,
+    });
+  } catch (error) {
+    console.error('Save media error:', error);
+
+    res.status(500).send({
+      success: false,
+      message: 'Failed to save media',
+    });
+  }
+});
+
 // get news data from database
 app.get('/news', async (req, res) => {
   const result = await newsCollection.find({}).toArray();
