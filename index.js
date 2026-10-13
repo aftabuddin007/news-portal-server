@@ -204,6 +204,17 @@ app.get('/careers', async (req, res) => {
   const result = await careerCollection.find({}).toArray();
   res.send(result)
 })
+// delete career from database
+app.delete('/careers/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await careerCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send({
+    success:true,
+    message:'Career deleted successfully',
+    result
+  })
+})
+
 // photo story
 app.post('/stories', async (req, res) => {
   const storyData = req.body;
