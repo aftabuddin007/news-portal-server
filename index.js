@@ -204,6 +204,13 @@ app.get('/careers', async (req, res) => {
   const result = await careerCollection.find({}).toArray();
   res.send(result)
 })
+// career //#endregion details
+app.get('/careers/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await careerCollection.findOne({ _id: new ObjectId(id) });
+  res.send(result)
+})
+
 // delete career from database
 app.delete('/careers/:id', async (req, res) => {
   const id = req.params.id;
