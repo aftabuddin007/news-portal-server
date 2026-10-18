@@ -222,36 +222,516 @@ app.delete('/careers/:id', async (req, res) => {
   })
 })
 
-// photo story
-app.post('/stories', async (req, res) => {
-  const storyData = req.body;
-  const result = await storyCollection.insertOne(storyData);
+// add story to database
+app.post("/stories", async (req, res) => {
+  try {
+    const {
+      title,
+      authorName,
+      authorEmail,
+      category,
+      publishedDate,
+      status,
+      images,
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !title?.trim() ||
+      !authorName?.trim() ||
+      !authorEmail?.trim() ||
+      !category ||
+      !publishedDate ||
+      !Array.isArray(images) ||
+      images.length === 0
+    ) {
+      return res.status(400).send({
+        success: false,
+        message: "Please provide all required story information",
+      });
+    }
+
+    // Validate image objects
+    const validImages = images.every(
+      (image) =>
+        typeof image.imageUrl === "string" &&
+        image.imageUrl.trim() !== "" &&
+        typeof image.caption === "string"
+    );
+
+    if (!validImages) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid image data",
+      });
+    }
+
+    const storyData = {
+      title: title.trim(),
+      authorName: authorName.trim(),
+      authorEmail: authorEmail.trim().toLowerCase(),
+      category,
+      publishedDate: new Date(publishedDate),
+      status: status === "Draft" ? "Draft" : "Published",
+      images: images.map((image) => ({
+        imageUrl: image.imageUrl,
+        caption: image.caption.trim(),
+      })),
+      createdAt: new Date(),
+    };
+
+    if (Number.isNaN(storyData.publishedDate.getTime())) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid published date",
+      });
+    }
+
+    const result = await storyCollection.insertOne(storyData);
+
+    res.status(201).send({
+      success: true,
+      message: "Story added successfully",
+      result,
+    });
+  } catch (error) {
+    console.error("Story creation error:", error);
+
+    res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+// All stories from database
+app.get("/stories", async (req, res) => {
+  try {
+    const result = await storyCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Get stories error:", error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to fetch stories",
+    });
+  }
+});
+// get specific id story from database
+
+app.get("/stories/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid story ID",
+      });
+    }
+
+    const story = await storyCollection.findOne({
+      _id: new ObjectId(id),
+    });
+
+    if (!story) {
+      return res.status(404).send({
+        success: false,
+        message: "Story not found",
+      });
+    }
+
+    res.send(story);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to fetch story",
+    });
+  }
+});
+
+// update story in database
+app.patch("/stories/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, images, publishedDate } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid story ID",
+      });
+    }
+
+    const updateFields = {};
+
+    if (title !== undefined) {
+      if (typeof title !== "string" || !title.trim()) {
+        return res.status(400).send({
+          success: false,
+          message: "Story title is required",
+        });
+      }
+
+      updateFields.title = title.trim();
+    }
+
+    if (images !== undefined) {
+      if (
+        !Array.isArray(images) ||
+        images.length === 0 ||
+        !images.every(
+          (image) =>
+            typeof image.imageUrl === "string" &&
+            image.imageUrl.trim() &&
+            typeof image.caption === "string"
+        )
+      ) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid story images or captions",
+        });
+      }
+
+      updateFields.images = images.map((image) => ({
+        imageUrl: image.imageUrl.trim(),
+        caption: image.caption.trim(),
+      }));
+    }
+
+    if (publishedDate !== undefined) {
+      const date = new Date(publishedDate);
+
+      if (Number.isNaN(date.getTime())) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid published date",
+        });
+      }
+
+      updateFields.publishedDate = date;
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "No fields provided for update",
+      });
+    }
+
+    const result = await storyCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Story not found",
+      });
+    }
+
+    res.send({
+      success: true,
+      message: "Story updated successfully",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to update story",
+    });
+  }
+});
+// delete story from database
+app.delete('/stories/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await storyCollection.deleteOne({ _id: new ObjectId(id) });
   res.send({
     success:true,
-    message:'Story added successfully',
+    message:'Story deleted successfully',
     result
   })
-})
-// All stories from database
-app.get('/stories', async (req, res) => {
-  const result = await storyCollection.find({}).toArray();
-  res.send(result)
 })
 // add photo Gallery to database
-app.post('/photos', async (req, res) => {
-  const photoData = req.body;
-  const result = await photoCollection.insertOne(photoData);
-  res.send({
-    success:true,
-    message:'Photo added successfully',
-    result
-  })
-})
+
+app.post("/photos", async (req, res) => {
+  try {
+    const photoData = req.body;
+
+    if (
+      !photoData.galleryTitle?.trim() ||
+     
+      !Array.isArray(photoData.images) ||
+      photoData.images.length === 0
+    ) {
+      return res.status(400).send({
+        success: false,
+        message: "Gallery title, writer and images are required",
+      });
+    }
+
+    const result = await photoCollection.insertOne({
+      ...photoData,
+      galleryTitle: photoData.galleryTitle.trim(),
+    });
+
+    res.status(201).send({
+      success: true,
+      message: "Photo gallery added successfully",
+      result,
+    });
+  } catch (error) {
+    console.error("Add photo gallery error:", error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to add photo gallery",
+    });
+  }
+});
+
 // all photos from database
-app.get('/photos', async (req, res) => {
-  const result = await photoCollection.find({}).toArray();
-  res.send(result)
-})
+app.get("/photos", async (req, res) => {
+  try {
+    const result = await photoCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Get photos error:", error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to fetch photo galleries",
+    });
+  }
+});
+// update photo gallery
+
+
+// Get a single photo gallery
+app.get("/photos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid gallery ID",
+      });
+    }
+
+    const photo = await photoCollection.findOne({
+      _id: new ObjectId(id),
+    });
+
+    if (!photo) {
+      return res.status(404).send({
+        success: false,
+        message: "Photo gallery not found",
+      });
+    }
+
+    res.send(photo);
+  } catch (error) {
+    console.error("Get photo error:", error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to fetch photo gallery",
+    });
+  }
+});
+
+// Update a photo gallery
+app.patch("/photos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid gallery ID",
+      });
+    }
+
+    const {
+      galleryTitle,
+      images,
+      guestWriterName,
+      guestWriterDesignation,
+      publishedDate,
+      status,
+    } = req.body;
+
+    const updateFields = {};
+
+    if (galleryTitle !== undefined) {
+      if (
+        typeof galleryTitle !== "string" ||
+        !galleryTitle.trim()
+      ) {
+        return res.status(400).send({
+          success: false,
+          message: "Gallery title is required",
+        });
+      }
+
+      updateFields.galleryTitle = galleryTitle.trim();
+    }
+
+    if (images !== undefined) {
+      if (
+        !Array.isArray(images) ||
+        images.length === 0 ||
+        !images.every(
+          (image) =>
+            typeof image.imageUrl === "string" &&
+            image.imageUrl.trim() &&
+            typeof image.caption === "string"
+        )
+      ) {
+        return res.status(400).send({
+          success: false,
+          message: "At least one valid image is required",
+        });
+      }
+
+      updateFields.images = images.map((image) => ({
+        imageUrl: image.imageUrl.trim(),
+        caption: image.caption.trim(),
+      }));
+    }
+
+    if (guestWriterName !== undefined) {
+      if (typeof guestWriterName !== "string") {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid guest writer name",
+        });
+      }
+
+      updateFields.guestWriterName = guestWriterName.trim();
+    }
+
+    if (guestWriterDesignation !== undefined) {
+      if (typeof guestWriterDesignation !== "string") {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid guest writer designation",
+        });
+      }
+
+      updateFields.guestWriterDesignation =
+        guestWriterDesignation.trim();
+    }
+
+    if (publishedDate !== undefined) {
+      const date = new Date(publishedDate);
+
+      if (Number.isNaN(date.getTime())) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid published date",
+        });
+      }
+
+      updateFields.publishedDate = date;
+    }
+
+    if (status !== undefined) {
+      if (!["Published", "Draft"].includes(status)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid publish status",
+        });
+      }
+
+      updateFields.status = status;
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "No fields provided for update",
+      });
+    }
+
+    const result = await photoCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Photo gallery not found",
+      });
+    }
+
+    res.send({
+      success: true,
+      message: "Photo gallery updated successfully",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Update photo error:", error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to update photo gallery",
+    });
+  }
+});
+
+// Delete photo gallery
+app.delete("/photos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid gallery ID",
+      });
+    }
+
+    const result = await photoCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Gallery not found",
+      });
+    }
+
+    res.send({
+      success: true,
+      message: "Photo gallery deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete photo error:", error);
+
+    res.status(500).send({
+      success: false,
+      message: "Failed to delete photo gallery",
+    });
+  }
+});
 // add video Gallery to database
 app.post('/videos', async (req, res) => {
   const videoData = req.body;
